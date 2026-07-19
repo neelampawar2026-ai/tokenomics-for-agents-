@@ -114,23 +114,6 @@ Question: how do I calculate MRR?
    index, decides what's relevant, and opens only that. It never loads the
    bundle whole.
 
-## The two punchlines
-
-**Token scaling.** The wiki costs O(concepts) per question; a raw dump costs
-O(rows) and grows forever. 1,901 vs 112,547 tokens today — and only one of
-those numbers moves when you add a million invoices.
-
-(Two figures appear in this repo and both are right: `ask.py` prints 67x because
-it counts only the pages it opened, while `compare_tokens.py` prints 59x because
-it also counts the `index.md` you must read to decide *which* pages to open.
-59x is the conservative one, so that is what the header quotes.)
-
-**Synthesis beats retrieval.** The MRR page says *"divide annual by 12"* and
-*"exclude trials."* No amount of retrieval over `saas.db` produces those
-sentences: they aren't in the schema, they aren't in the rows, and the notes
-file states them only informally, buried in a story about a board deck. The
-compile step lifted them into an explicit, citable statement. That is knowledge
-that did not exist in machine-readable form before compilation.
 
 ## Where the LLM plugs in
 
