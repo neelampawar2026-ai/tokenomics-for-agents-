@@ -1,9 +1,26 @@
-# Wiki Memory — an OKF v0.1 demo
+# Tokenomics for Agents
 
-Compile raw data into a knowledge bundle **once**, then answer questions from
-the bundle instead of the data. The bundle is plain markdown with YAML
-frontmatter, conformant to
-[Open Knowledge Format v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md).
+**An agent that queries raw data pays O(rows) per question, forever. One that
+reads a compiled wiki pays O(concepts) — and that number stays flat as the
+database grows.**
+
+This is a small, runnable demonstration of that difference. It compiles a
+SQLite database and a messy analyst-notes file into a knowledge bundle **once**,
+then answers questions from the bundle instead of the data. The bundle is plain
+markdown with YAML frontmatter, conformant to
+[Open Knowledge Format v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
+— no database, no index, no tooling required to read it.
+
+Measured on 8,100 rows of SaaS subscription data:
+
+| | Tokens per question |
+|---|---|
+| Compiled wiki context | **1,901** |
+| Dumping the raw rows | **112,547** |
+| | **59x cheaper** |
+
+At 10x the data the gap is 592x, and the raw dump stops fitting in a 1M-token
+context window entirely at ~72,000 rows. The wiki column never moves.
 
 Domain: SaaS subscription analytics — accounts, subscriptions, invoices, with
 MRR and account churn as the metrics.
@@ -100,8 +117,13 @@ Question: how do I calculate MRR?
 ## The two punchlines
 
 **Token scaling.** The wiki costs O(concepts) per question; a raw dump costs
-O(rows) and grows forever. 1,679 vs 112,547 tokens today — and only one of
+O(rows) and grows forever. 1,901 vs 112,547 tokens today — and only one of
 those numbers moves when you add a million invoices.
+
+(Two figures appear in this repo and both are right: `ask.py` prints 67x because
+it counts only the pages it opened, while `compare_tokens.py` prints 59x because
+it also counts the `index.md` you must read to decide *which* pages to open.
+59x is the conservative one, so that is what the header quotes.)
 
 **Synthesis beats retrieval.** The MRR page says *"divide annual by 12"* and
 *"exclude trials."* No amount of retrieval over `saas.db` produces those
