@@ -40,15 +40,6 @@ Python 3 stdlib only. No pip installs, no API keys, no config.
 The semantic pass is templated by default so the demo needs no key. To run it
 against a real model instead:
 
-```bash
-pip install -U google-genai
-cp .env.example .env        # then put your key in it
-python3 generate_wiki.py --llm
-```
-
-Uses Gemini 3.5 Flash. `.env` is gitignored. The key is read from `GEMINI_API_KEY` —
-an already-exported env var wins over the file, so CI needs no `.env` at all.
-
 This changes **one function** (`describe_llm()`); the OKF output is the same
 shape either way. The flag defaults to off and the `google-genai` import lives
 inside that function, so the zero-dependency property above still holds for
@@ -134,15 +125,3 @@ Two functions, both marked in the source:
 Producer and consumer never negotiate. That independence is the point of having
 a format at all.
 
-## One honest warning
-
-Generated pages look authoritative. A page is a flat markdown file with no
-signal distinguishing "a human verified this" from "a model asserted it at
-3am." A wrong page misleads every agent that reads it afterward, silently, and
-it will be cited as a source — which is worse than a wrong row, because a wrong
-row is one fact and a wrong page is a policy.
-
-Mitigation: gate wiki writes behind pull requests so a human reviews the diff,
-and put `verified: false` in the frontmatter of every machine-generated page
-until someone checks it. Consumers can then weight or refuse unverified pages
-instead of trusting everything in the bundle equally.
