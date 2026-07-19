@@ -4,3 +4,6 @@ wiki.partial/
 
 # wiki/ is deliberately committed: it is the artifact this demo exists to show.
 # Regenerate with `python3 generate_wiki.py`.
+
+# Internal guidance for Claude Code sessions; not part of the demo.
+CLAUDE.md
