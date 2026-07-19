@@ -4,15 +4,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A teaching demo for the **wiki memory** pattern: compile raw data into an
+**Tokenomics for Agents** — a runnable demo of the *wiki memory* pattern.
+Published at https://github.com/neelampawar2026-ai/tokenomics-for-agents- and
+written to back a blog post, so the repo is an exhibit as much as a codebase.
+
+The thesis, and the sentence every change should stay true to: an agent
+querying raw data pays O(rows) per question forever; an agent reading a
+compiled wiki pays O(concepts), and that number stays flat as the data grows.
+Compile a SQLite DB plus a messy notes file into an
 [Open Knowledge Format v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
-bundle once, then answer questions from the compiled bundle instead of the raw
-data. Domain is SaaS subscription analytics (accounts / subscriptions /
-invoices, with MRR and account churn as metrics).
+bundle once, then answer from the bundle. Domain is SaaS subscription analytics
+(accounts / subscriptions / invoices, with MRR and account churn as metrics).
 
 The demo's credibility rests on being small enough to read in one sitting.
 Five short scripts, each readable top-to-bottom. Resist adding CLI frameworks,
 classes, config files, or logging setup.
+
+`wiki/` is deliberately committed to git (unusual for a build artifact) so the
+compiled pages render on GitHub — a visitor arriving from the post should see
+the artifact without cloning or running anything. `rawdata/saas.db` stays
+ignored; it is binary and regenerable.
 
 ## Commands
 
@@ -130,6 +141,13 @@ Two ratio numbers appear in the repo and both are correct: `ask.py` reports
 ~67x (pages opened only), `compare_tokens.py` reports ~59x (also counts the
 `index.md` you must read to choose them). Prefer 59x when quoting — it is the
 conservative one.
+
+**`README.md` hardcodes token counts** (1,901 / 112,547 / 59x) in its header
+table and again in the punchlines section. Any change to seed volume, page
+content, or the token estimator invalidates them. Re-run `compare_tokens.py`
+and update both places — they have drifted apart once already. The pasted
+`ask.py` sample output further down the README is real terminal output and
+legitimately shows 67x; leave it alone rather than editing it to match.
 
 ## Known gaps
 
