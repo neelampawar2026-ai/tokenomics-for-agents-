@@ -1,26 +1,56 @@
 # Tokenomics for Agents
 
-**An agent that queries raw data pays O(rows) per question, forever. One that
-reads a compiled wiki pays O(concepts) — and that number stays flat as the
-database grows.**
+**Stop feeding your database to the model. Feed it a compiled wiki instead.**
 
-This is a small, runnable demonstration of that difference. It compiles a
-SQLite database and a messy analyst-notes file into a knowledge bundle **once**,
-then answers questions from the bundle instead of the data. The bundle is plain
-markdown with YAML frontmatter, conformant to
-[Open Knowledge Format v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
-— no database, no index, no tooling required to read it.
+Most agents answer a question by pulling rows out of a database and stuffing
+them into the prompt. That works until it doesn't: every question costs more as
+your data grows, and the model still has to guess at the things your data
+doesn't say out loud.
 
-Measured on 8,100 rows of SaaS subscription data:
+This demo does it the other way. It reads a SQLite database and a messy
+analyst-notes file **once**, and compiles them into a small set of plain
+markdown pages. Every question after that is answered from those pages.
 
-| | Tokens per question |
+## What you get
+
+**1. Questions get ~60x cheaper.** Measured on 8,100 rows of SaaS subscription
+data:
+
+| | Tokens to answer one question |
 |---|---|
-| Compiled wiki context | **1,901** |
+| Compiled wiki | **1,901** |
 | Dumping the raw rows | **112,547** |
-| | **59x cheaper** |
+| | **59x less** |
 
-At 10x the data the gap is 592x, and the raw dump stops fitting in a 1M-token
-context window entirely at ~72,000 rows. The wiki column never moves.
+**2. That cost stops growing with your data.** The raw-dump approach gets more
+expensive every time someone signs up. The wiki doesn't — it describes *the
+concepts*, and you don't add a new concept every time you add a row.
+
+| Rows in the database | Raw dump | Compiled wiki |
+|---|---|---|
+| 8,100 (today) | 112,547 tokens | 1,901 tokens |
+| 81,000 | 1,125,470 | 1,901 |
+| 810,000 | 11,254,700 | 1,901 |
+
+Past roughly 72,000 rows the raw dump no longer fits in a 1M-token context
+window at all. The wiki still fits at any size.
+
+**3. The agent stops getting the answer wrong.** This is the part that isn't
+about money. In this dataset, a column named `monthly_usd` holds the *annual*
+price for annual plans, and trial subscriptions carry a price they never pay.
+An agent reading the raw rows has no way to know either — so it sums the column
+and reports revenue that is **6x too high**. The wiki says so in plain language,
+on the page about revenue, because a human wrote it down in a notes file and the
+compile step lifted it out.
+
+**4. No infrastructure.** The output is markdown files in a folder. No vector
+database, no embeddings, no index to keep in sync, no server. You can read it,
+`grep` it, diff it in a pull request, or hand it to any model. It conforms to
+[Open Knowledge Format v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md),
+and the whole demo runs on the Python standard library.
+
+The trade: you pay the compile cost once, up front, and you have to re-run it
+when the schema or the domain knowledge changes.
 
 Domain: SaaS subscription analytics — accounts, subscriptions, invoices, with
 MRR and account churn as the metrics.
@@ -39,6 +69,14 @@ Python 3 stdlib only. No pip installs, no API keys, no config.
 
 The semantic pass is templated by default so the demo needs no key. To run it
 against a real model instead:
+
+```bash
+pip install -U google-genai
+cp .env.example .env        # then put your key in it
+python3 generate_wiki.py --llm
+```
+
+Uses Gemini 3.5 Flash, reading `GEMINI_API_KEY`. `.env` is gitignored.
 
 This changes **one function** (`describe_llm()`); the OKF output is the same
 shape either way. The flag defaults to off and the `google-genai` import lives
