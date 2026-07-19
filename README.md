@@ -163,3 +163,27 @@ Two functions, both marked in the source:
 Producer and consumer never negotiate. That independence is the point of having
 a format at all.
 
+## One honest warning
+
+Everything above argues that agents should trust the compiled wiki over the raw
+data. That only holds if the wiki is right — and a generated page gives you no
+way to tell.
+
+A page is a flat markdown file. Nothing in it distinguishes "a human verified
+this" from "a model asserted it at 3am." A wrong page is worse than a wrong
+row, because a wrong row is one bad fact while a wrong page becomes a cited
+source for every agent that reads it afterward. The failure is silent and it
+compounds.
+
+Two mitigations, neither exotic:
+
+- **Gate wiki writes behind pull requests**, so a human reviews the diff before
+  the bundle changes. Plain markdown makes this work — you can actually read a
+  wiki diff, which is not true of an embedding index.
+- **Put `verified: false` in the frontmatter of every machine-generated page**
+  until a human checks it. Consumers can then weight or refuse unverified pages
+  instead of trusting the whole bundle equally.
+
+(The second is described here but not yet implemented in this demo — the
+compiler does not emit the flag and there is no `verify.py`.)
+
